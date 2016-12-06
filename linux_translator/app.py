@@ -8,6 +8,7 @@ from PySide import QtCore, QtGui
 import gui
 import keylistener
 import lingualeo
+import spellcheck
 
 
 # pylint: disable=no-member
@@ -35,8 +36,10 @@ class App(QtGui.QApplication):
     def get_selection():
         """Get current selection, translate it
         and return with current mouse position"""
-        data = os.popen('xsel').read()
-        data = lingualeo.get_translate(data)
+        selection = os.popen('xsel').read()
+        data = {}
+        data.update(lingualeo.get_translate(selection))
+        data.update(spellcheck.check_spelling(selection))
         x_pos = keylistener.new_hook.mouse_position_x
         y_pos = keylistener.new_hook.mouse_position_y
         return data, x_pos, y_pos

@@ -11,9 +11,21 @@ def docstring_style(text):
 
 def header_style(text):
     """Format word as header"""
-    header = '<h2><font style="color:#a54926">Source word is: </font>' \
-             '<font style="color:#5791a0">{}</font></h2>'.format(text)
+    header = '<font style="color:#a54926">Source word is: </font>' \
+             '<font style="color:#5791a0">{}</font><br><br>'.format(text)
     return header
+
+
+def word_with_error(text):
+    """Duck"""
+    word = '<font style="color:#b200b2">{}</font>'.format(text)
+    return word
+
+
+def word_suggest(text):
+    """Duck"""
+    word = '<font style="color:#cc7832">{}</font>'.format(text)
+    return word
 
 
 class ScrollBar(QtGui.QScrollBar):
@@ -85,7 +97,7 @@ class PopupTranslate(QtGui.QWidget):
         """Set window options and show it"""
         self.data = data
 
-        self.parse_translate(data)
+        self.get_text(data)
 
         widht = 450
         height = 250
@@ -110,7 +122,15 @@ class PopupTranslate(QtGui.QWidget):
         self.text_window.setGeometry(0, 0, widht, height)
         self.show()
 
-    def parse_translate(self, data):
+    def get_text(self, data):
+        """Duck"""
+        trans = self.parse_translate(data)
+        spell = self.parse_spellchecker(data)
+        self.text = '<br><br>'.join((trans, spell))
+        return self.text
+
+    @staticmethod
+    def parse_translate(data):
         """Create formatted text to display"""
         data = data['lingualeo']
         error = data.get('error')
@@ -119,17 +139,57 @@ class PopupTranslate(QtGui.QWidget):
 
             header += docstring_style('Lingualeo error')
             error = 'Error code - {}.<br>'.format(error[0])
-            self.text = header + error
+            text = header + error
         else:
             header += docstring_style('Lingualeo translation')
             traslation = [
                 '{}. {}'.format(idx, trans)
                 for idx, trans in enumerate(data['twords'], start=1)
                 ]
-            self.text = header + '<br>'.join(traslation)
+            text = header + '<br>'.join(traslation)
 
-        self.text = self.text.decode('utf-8')
-        return self.text
+        text = text.decode('utf-8')
+        return text
+
+    @staticmethod
+    def parse_spellchecker(data):
+        """Parse Yandex spellchecker rusult"""
+        data = data['yandex_speller']
+
+        result_text = ''
+        spell_checked_data = []
+        point = 0
+        for result in data['spellcheck']:
+            start_sym = int(result['pos'])
+            end_sym = start_sym + int(result['len'])
+
+            before_error_word = data['word'][point:start_sym]
+            spell_checked_data.append(before_error_word)
+
+            src_word = word_with_error(data['word'][start_sym:end_sym])
+
+            spell_checked_data.append(src_word)
+
+            suggest_text = word_suggest('(' + ', '.join(result['s']) + ')')
+            spell_checked_data.append(suggest_text)
+            point = end_sym
+        if point:
+            spell_checked_data.append(data['word'][point:])
+
+        spell_check_result = ''.join(spell_checked_data)
+        if not spell_check_result:
+            spell_check_result = 'No errors.'
+        error = data.get('error')
+
+        result_text += docstring_style('Spellchecker')
+        if error:
+            error = 'Error code - {}.<br>'.format(error[0])
+            text = result_text + error
+        else:
+            text = result_text + '<br>' + spell_check_result
+
+        text = text.decode('utf-8')
+        return text
 
     def eventFilter(self, widget, event):
         """Catch widget event and close window if Esc button pressed"""

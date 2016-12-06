@@ -28,5 +28,6 @@ def get_translate(word):
             for trans in resp["translate"]
         )
     except Exception:
-        trans['lingualeo']["error"] = (resp.status_code, resp.text.encode("utf-8"))
+        trans['lingualeo']["error"] = (
+            resp.status_code, resp.text.encode("utf-8"))
     return trans

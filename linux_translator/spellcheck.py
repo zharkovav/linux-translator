@@ -11,8 +11,23 @@ def check_spelling(word):
         params=payload,
     )
 
+    checker = {
+        'yandex_speller': {
+            "word": word,
+            "error": None,
+            "spellcheck": [],
+        }
+    }
+
     try:
         resp = resp.json()
+        checker['yandex_speller']['spellcheck'] = resp
     except Exception:
-        pass
-    return resp
+        checker['yandex_speller']["error"] = (
+            resp.status_code, resp.text.encode("utf-8"))
+    return checker
+
+
+if __name__ == '__main__':
+    check_spelling('Helo Worl!')
+    'Helllo my litle babe! lenhgt is 10'
