@@ -1,6 +1,7 @@
 {
     "options": {
         "translation": true,
-        "spellchecker": true
+        "spellchecker": true,
+        "hex-decoder": true
     }
 }

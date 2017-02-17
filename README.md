@@ -1,7 +1,7 @@
 # Linux translation
 
 This package was created for translate selected text from 
-Russian to English from every place in Linux system.
+English to Russian from every place in Linux system.
 
 Usage is very straightforward: you run application (can work in
 background), select text, press keyboard button (F2 by default) and

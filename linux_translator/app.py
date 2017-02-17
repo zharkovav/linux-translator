@@ -52,7 +52,7 @@ class App(QtGui.QApplication):
         """Get current selection, translate it
         and return with current mouse position"""
         selection = os.popen('xsel').read()
-        data = {}
+        data = {'src': selection}
         data.update(lingualeo.get_translate(selection))
         data.update(spellcheck.check_spelling(selection))
         x_pos = keylistener.new_hook.mouse_position_x

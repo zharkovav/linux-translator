@@ -128,12 +128,14 @@ class PopupTranslate(QtGui.QWidget):
     def get_text(self, data):
         """Duck"""
         # ToDo move this to some 'option module' class method
-        trans = spell = ''
+        trans = spell = hex_decoded = ''
         if config.config['options']['translation']:
             trans = self.parse_translate(data)
         if config.config['options']['spellchecker']:
             spell = self.parse_spellchecker(data)
-        self.text = '<br><br>'.join((trans, spell))
+        if config.config['options']['hex-decoder']:
+            hex_decoded = self.parse_hex(data)
+        self.text = '<br><br>'.join((trans, spell, hex_decoded))
         return self.text
 
     @staticmethod
@@ -197,6 +199,17 @@ class PopupTranslate(QtGui.QWidget):
 
         text = text.decode('utf-8')
         return text
+
+    def parse_hex(self, data):
+        """Try to decode data from hex"""
+        src = data['src']
+        header = docstring_style('Decode hex')
+        try:
+            decoded_text = src.decode('hex')
+        except TypeError:
+            decoded_text = "Can't decode source text to hex."
+        res = header + '<br>' + decoded_text
+        return res
 
     def eventFilter(self, widget, event):
         """Catch widget event and close window if Esc button pressed"""
