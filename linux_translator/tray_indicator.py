@@ -5,6 +5,8 @@ import functools
 from PySide import QtCore
 from PySide import QtGui
 
+import config
+
 
 class AppTrayMenu(QtGui.QMenu):
     """Class represent applicacion tray menu"""
@@ -32,7 +34,7 @@ class AppTrayMenu(QtGui.QMenu):
 
     def handle_option_action(self, opt_name):
         """Enable or disable action option"""
-        pass
+        config.config['options'][opt_name] = not config.config['options'][opt_name]
 
 
 class SystemTrayIcon(QtGui.QSystemTrayIcon):
@@ -49,4 +51,3 @@ class SystemTrayIcon(QtGui.QSystemTrayIcon):
     def exit(self):
         """This method trigger on_exit signal"""
         self.on_exit.emit()
-

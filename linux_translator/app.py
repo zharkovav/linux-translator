@@ -7,17 +7,13 @@ import sys
 from PySide import QtCore
 from PySide import QtGui
 
+import argparse
+import config
 import gui
 import keylistener
 import lingualeo
 import spellcheck
 import tray_indicator
-
-
-options = {
-    'Translation': True,
-    'Spellchecker': True,
-}
 
 
 # pylint: disable=no-member
@@ -47,7 +43,7 @@ class App(QtGui.QApplication):
                 os.path.dirname(__file__), "./tray-logo.png"
             ),
             exit_signal=self.sig_exit,
-            menu_options=options,
+            menu_options=config.config['options'],
         )
         self.tray_menu.show()
 
@@ -79,8 +75,32 @@ class App(QtGui.QApplication):
         self.quit()
 
 
+def get_args():
+    """ Read script arguments """
+    parser = argparse.ArgumentParser(
+        description='Linux-translator CLI interface.'
+    )
+
+    default_conf = os.path.join(os.path.dirname(__file__), 'config.json')
+
+    parser.add_argument(
+        "-c",
+        dest="config_file",
+        type=str,
+        default=default_conf,
+        help="JSON file with configuration"
+    )
+
+    args = parser.parse_args()
+
+    return args
+
+
 def main():
     """Main runner"""
+
+    args = get_args()
+    config.config.read(args.config_file)
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 

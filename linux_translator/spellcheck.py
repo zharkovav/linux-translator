@@ -26,8 +26,3 @@ def check_spelling(word):
         checker['yandex_speller']["error"] = (
             resp.status_code, resp.text.encode("utf-8"))
     return checker
-
-
-if __name__ == '__main__':
-    check_spelling('Helo Worl!')
-    'Helllo my litle babe! lenhgt is 10'

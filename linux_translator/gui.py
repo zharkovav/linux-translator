@@ -1,7 +1,10 @@
 # coding=utf-8
 """Pop-up window with word translation"""
 
-from PySide import QtGui, QtCore
+from PySide import QtCore
+from PySide import QtGui
+
+import config
 
 
 def docstring_style(text):
@@ -104,7 +107,7 @@ class PopupTranslate(QtGui.QWidget):
 
         self.setGeometry(mouse_x, mouse_y, widht, height)
 
-        self.setWindowTitle('Linux Translate')
+        self.setWindowTitle('Linux Translator')
         self.text_window = QtGui.QTextEdit(self.text, self)
         self.text_window.setReadOnly(True)
         self.text_window.setWordWrapMode = False
@@ -124,8 +127,12 @@ class PopupTranslate(QtGui.QWidget):
 
     def get_text(self, data):
         """Duck"""
-        trans = self.parse_translate(data)
-        spell = self.parse_spellchecker(data)
+        # ToDo move this to some 'option module' class method
+        trans = spell = ''
+        if config.config['options']['translation']:
+            trans = self.parse_translate(data)
+        if config.config['options']['spellchecker']:
+            spell = self.parse_spellchecker(data)
         self.text = '<br><br>'.join((trans, spell))
         return self.text
 
