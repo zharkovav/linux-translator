@@ -3,12 +3,21 @@
 import os
 import signal
 import sys
-from PySide import QtCore, QtGui
+
+from PySide import QtCore
+from PySide import QtGui
 
 import gui
 import keylistener
 import lingualeo
 import spellcheck
+import tray_indicator
+
+
+options = {
+    'Translation': True,
+    'Spellchecker': True,
+}
 
 
 # pylint: disable=no-member
@@ -31,6 +40,16 @@ class App(QtGui.QApplication):
 
         # start keyboard listener thread
         keylistener.new_hook.start()
+
+        # Initialise and show system tray icon
+        self.tray_menu = tray_indicator.SystemTrayIcon(
+            icon_file=os.path.join(
+                os.path.dirname(__file__), "./tray-logo.png"
+            ),
+            exit_signal=self.sig_exit,
+            menu_options=options,
+        )
+        self.tray_menu.show()
 
     @staticmethod
     def get_selection():
