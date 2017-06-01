@@ -53,8 +53,12 @@ class App(QtGui.QApplication):
         and return with current mouse position"""
         selection = os.popen('xsel').read()
         data = {'src': selection}
-        data.update(lingualeo.get_translate(selection))
-        data.update(spellcheck.check_spelling(selection))
+        if config.config['options']['translation']:
+            data.update(lingualeo.get_translate(selection))
+        if config.config['options']['spellchecker']:
+            data.update(spellcheck.check_spelling(selection))
+        # if config.config['options']['hex-decoder']:
+        #     hex_decoded = self.parse_hex(data)
         x_pos = keylistener.new_hook.mouse_position_x
         y_pos = keylistener.new_hook.mouse_position_y
         return data, x_pos, y_pos

@@ -1,6 +1,7 @@
 """Get word translate from lingualeo.com"""
 
 import string
+import re
 
 import requests
 
@@ -8,6 +9,17 @@ import requests
 def get_translate(word):
     """Translate word using Lingualeo api"""
     word = word.strip().strip(string.punctuation)
+    # split under_scored words
+    word = word.replace('_', ' ')
+
+    # ToDo split CamelCase words
+    # words = word.split()
+    # for w in words:
+    #     matches = re.finditer(
+    #         '.+?(?:(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|$)',
+    #         w)
+    #     print ' '.join([m.group(0) for m in matches])
+
     payload = {'word': word}
     resp = requests.get(
         "http://api.lingualeo.com/gettranslates",
@@ -17,15 +29,20 @@ def get_translate(word):
     trans = {
         'lingualeo': {
             "word": word,
-            "error": None,
+            "error": (None, None),
+            "twords": []
         }
     }
 
     try:
-        resp = resp.json()
-        trans['lingualeo']["twords"] = (
-            trans['value'].encode("utf-8")
-            for trans in resp["translate"]
+        resp_json = resp.json()
+        trans['lingualeo']['twords'] = (
+            translation['value'].encode("utf-8")
+            for translation in resp_json.get("translate", ())
+        )
+        trans['lingualeo']['error'] = (
+            resp_json.get('error_code'),
+            resp_json.get('error_msg'),
         )
     except Exception:
         trans['lingualeo']["error"] = (

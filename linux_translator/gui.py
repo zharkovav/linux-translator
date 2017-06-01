@@ -126,7 +126,7 @@ class PopupTranslate(QtGui.QWidget):
         self.show()
 
     def get_text(self, data):
-        """Duck"""
+        """Parse given data through module and return text content"""
         # ToDo move this to some 'option module' class method
         trans = spell = hex_decoded = ''
         if config.config['options']['translation']:
@@ -144,10 +144,9 @@ class PopupTranslate(QtGui.QWidget):
         data = data['lingualeo']
         error = data.get('error')
         header = header_style(data['word'])
-        if error:
-
+        if error[0]:
             header += docstring_style('Lingualeo error')
-            error = 'Error code - {}.<br>'.format(error[0])
+            error = 'Error code - {}: {}.<br>'.format(error[0], error[1])
             text = header + error
         else:
             header += docstring_style('Lingualeo translation')
@@ -200,7 +199,8 @@ class PopupTranslate(QtGui.QWidget):
         text = text.decode('utf-8')
         return text
 
-    def parse_hex(self, data):
+    @staticmethod
+    def parse_hex(data):
         """Try to decode data from hex"""
         src = data['src']
         header = docstring_style('Decode hex')
