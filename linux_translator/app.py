@@ -14,6 +14,7 @@ import keylistener
 import lingualeo
 import spellcheck
 import tray_indicator
+import workers
 
 
 # pylint: disable=no-member
@@ -25,6 +26,9 @@ class App(QtGui.QApplication):
     def __init__(self):
         super(App, self).__init__([])
         self.win = None
+
+        # get workers
+        self.workers = workers.get_workers()
 
         # connect signals
         self.sig_show.connect(self.show_popup)
@@ -49,25 +53,24 @@ class App(QtGui.QApplication):
 
     @staticmethod
     def get_selection():
-        """Get current selection, translate it
-        and return with current mouse position"""
+        """Get current selection"""
         selection = os.popen('xsel').read()
+        return selection
+
+    @QtCore.Slot()
+    def show_popup(self):
+        """Show window with translate info"""
+        selection = self.get_selection()
+
         data = {'src': selection}
         if config.config['options']['translation']:
             data.update(lingualeo.get_translate(selection))
         if config.config['options']['spellchecker']:
             data.update(spellcheck.check_spelling(selection))
-        # if config.config['options']['hex-decoder']:
-        #     hex_decoded = self.parse_hex(data)
         x_pos = keylistener.new_hook.mouse_position_x
         y_pos = keylistener.new_hook.mouse_position_y
-        return data, x_pos, y_pos
 
-    @QtCore.Slot()
-    def show_popup(self):
-        """Show window with translate info"""
-        data = self.get_selection()
-        self.win = gui.PopupTranslate(*data)
+        self.win = gui.PopupTranslate(data, x_pos, y_pos)
         self.win.show()
 
     @QtCore.Slot()
