@@ -1,13 +1,14 @@
 """Main Application class"""
 
+import argparse
 import os
 import signal
 import sys
+import Queue
 
 from PySide import QtCore
 from PySide import QtGui
 
-import argparse
 import config
 import gui
 import keylistener
@@ -29,6 +30,7 @@ class App(QtGui.QApplication):
 
         # get workers
         self.workers = workers.get_workers()
+        self.data_queue = Queue.Queue()
 
         # connect signals
         self.sig_show.connect(self.show_popup)
@@ -61,6 +63,15 @@ class App(QtGui.QApplication):
     def show_popup(self):
         """Show window with translate info"""
         selection = self.get_selection()
+
+        for plugin in self.workers:
+            mod = plugin(self.data_queue, selection)
+            mod.start()
+
+        print self.data_queue
+
+        while not self.data_queue.empty():
+            print 'Data: ', self.data_queue.get()
 
         data = {'src': selection}
         if config.config['options']['translation']:

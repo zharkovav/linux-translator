@@ -18,5 +18,14 @@ class Result(
 class BaseModule(threading.Thread):
     """Base class for all modules"""
 
-    def run(self, selection=None):
+    NAME = 'Base'
+
+    def __init__(self, queue, selection=''):
+        """Initialisation method. Store selection string to instance."""
+        super(BaseModule, self).__init__()
+        self.selection = selection
+        self.queue = queue
+
+    def run(self):
+        """Run module processing. Should be implemented in child classes."""
         raise NotImplemented
