@@ -122,8 +122,8 @@ def main():
 
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    print 'Linux-translator applcation started. Use F2 to translate and ' \
-          'F9 to exit (defaul values).'
+    print 'Linux-translator application started. Use F2 to translate and ' \
+          'F9 to exit (default values).'
 
     app = App()
     sys.exit(app.exec_())

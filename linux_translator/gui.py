@@ -90,7 +90,6 @@ class PopupTranslate(QtGui.QWidget):
         super(PopupTranslate, self).__init__()
 
         self.text = None
-        self.data = None
         self.text_window = None
 
         self.installEventFilter(self)
@@ -98,7 +97,6 @@ class PopupTranslate(QtGui.QWidget):
 
     def show_popup(self, data, mouse_x, mouse_y):
         """Set window options and show it"""
-        self.data = data
 
         self.get_text(data)
 
@@ -112,7 +110,6 @@ class PopupTranslate(QtGui.QWidget):
         self.text_window.setReadOnly(True)
         self.text_window.setWordWrapMode = False
         self.text_window.setVerticalScrollBar(ScrollBar(self))
-
         self.text_window.setStyleSheet(
             "QTextEdit {"
             "color: #a5b2c1;"
