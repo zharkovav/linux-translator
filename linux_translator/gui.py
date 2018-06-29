@@ -83,17 +83,39 @@ class ScrollBar(QtGui.QScrollBar):
         )
 
 
+class QueueWorker(QtCore.QThread):
+    """Queue thread"""
+    def __init__(self, queue=None, text_win=None, parent=None):
+        super(QueueWorker, self).__init__(parent)
+        self.queue = queue
+        self.text_win = text_win
+        self.stop = False
+
+    def run(self):
+        while not self.stop:
+            data = self.queue.get()
+            print 'Get data: ', data
+            self.text_win.append(data.result)
+
+
 class PopupTranslate(QtGui.QWidget):
     """Popup window with translation"""
 
-    def __init__(self, data, mouse_x, mouse_y):
+    def __init__(self, data, mouse_x, mouse_y, queue=None):
         super(PopupTranslate, self).__init__()
 
         self.text = None
-        self.text_window = None
+        self.text_window = QtGui.QTextEdit(self.text, self)
+
+        self.queue_thread = QueueWorker(queue=queue, text_win=self.text_window)
+        self.queue_thread.start()
 
         self.installEventFilter(self)
         self.show_popup(data, mouse_x, mouse_y)
+
+    def close(self):
+        self.queue_thread.stop = True
+        super(PopupTranslate, self).close()
 
     def show_popup(self, data, mouse_x, mouse_y):
         """Set window options and show it"""
@@ -106,7 +128,8 @@ class PopupTranslate(QtGui.QWidget):
         self.setGeometry(mouse_x, mouse_y, widht, height)
 
         self.setWindowTitle('Linux Translator')
-        self.text_window = QtGui.QTextEdit(self.text, self)
+        # self.text_window = QtGui.QTextEdit(self.text, self)
+        # self.text_window.clear()
         self.text_window.setReadOnly(True)
         self.text_window.setWordWrapMode = False
         self.text_window.setVerticalScrollBar(ScrollBar(self))

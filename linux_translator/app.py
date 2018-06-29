@@ -62,16 +62,16 @@ class App(QtGui.QApplication):
     @QtCore.Slot()
     def show_popup(self):
         """Show window with translate info"""
+        if self.win is not None:
+            self.win.close()
         selection = self.get_selection()
 
         for plugin in self.workers:
             mod = plugin(self.data_queue, selection)
             mod.start()
 
-        print self.data_queue
-
-        while not self.data_queue.empty():
-            print 'Data: ', self.data_queue.get()
+        # while not self.data_queue.empty():
+        #     print 'Data: ', self.data_queue.get()
 
         data = {'src': selection}
         if config.config['options']['translation']:
@@ -81,7 +81,10 @@ class App(QtGui.QApplication):
         x_pos = keylistener.new_hook.mouse_position_x
         y_pos = keylistener.new_hook.mouse_position_y
 
-        self.win = gui.PopupTranslate(data, x_pos, y_pos)
+        import threading
+        print 'Active threads: ', threading.active_count()
+
+        self.win = gui.PopupTranslate(data, x_pos, y_pos, self.data_queue)
         self.win.show()
 
     @QtCore.Slot()

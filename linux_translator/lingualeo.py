@@ -21,10 +21,6 @@ def get_translate(word):
     #     print ' '.join([m.group(0) for m in matches])
 
     payload = {'word': word}
-    resp = requests.get(
-        "http://api.lingualeo.com/gettranslates",
-        params=payload,
-    )
 
     trans = {
         'lingualeo': {
@@ -35,6 +31,10 @@ def get_translate(word):
     }
 
     try:
+        resp = requests.get(
+            "http://api.lingualeo.com/gettranslates",
+            params=payload,
+        )
         resp_json = resp.json()
         trans['lingualeo']['twords'] = (
             translation['value'].encode("utf-8")
@@ -43,6 +43,10 @@ def get_translate(word):
         trans['lingualeo']['error'] = (
             resp_json.get('error_code'),
             resp_json.get('error_msg'),
+        )
+    except requests.ConnectionError as err:
+        trans['lingualeo']["error"] = (
+            'Connection error occurred: {}'.format(err)
         )
     except Exception:
         trans['lingualeo']["error"] = (

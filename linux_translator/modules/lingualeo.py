@@ -47,24 +47,25 @@ class LingualeoTranslate(base.BaseModule):
         selection = ' '.join(splitted)
 
         payload = {'word': selection}
-        resp = requests.get(
-            "http://api.lingualeo.com/gettranslates",
-            params=payload,
-        )
 
         twords = []
         try:
+            resp = requests.get(
+                "http://api.lingualeo.com/gettranslates",
+                params=payload,
+            )
             resp_json = resp.json()
             twords = [
                 translation['value'].encode("utf-8")
                 for translation in resp_json.get("translate", ())
             ]
             error = resp_json.get('error_msg')
-
+        except requests.ConnectionError as err:
+            error = 'Connection error occurred: {}'.format(err)
         except ValueError:
             error = resp.text.encode("utf-8")
         except Exception as err:
-            error = 'Error occurred in translator module. {}'.format(err)
+            error = 'Error occurred in translator module: {}'.format(err)
 
         res = Translate(
             selection=selection,
@@ -93,7 +94,7 @@ class LingualeoTranslate(base.BaseModule):
 
     def run(self):
         """Get translation of selected text, format it and return back."""
-        print 'Lingualeo translation: ', threading.current_thread()
+        print self.NAME, threading.current_thread()
 
         translate = self.get_translate()
         formatted = self.format_translate(translate)
