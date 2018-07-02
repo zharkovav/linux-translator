@@ -96,7 +96,8 @@ class HookManager(threading.Thread):
         self.local_dpy.flush()
     
     def printevent(self, event):
-        print event
+        # print event
+        pass
     
     def HookKeyboard(self):
         pass

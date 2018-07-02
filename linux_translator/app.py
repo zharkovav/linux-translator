@@ -1,19 +1,51 @@
 """Main Application class"""
 
+import argparse
+import logging
 import os
+import Queue
 import signal
 import sys
 
 from PySide import QtCore
 from PySide import QtGui
 
-import argparse
 import config
 import gui
 import keylistener
-import lingualeo
-import spellcheck
 import tray_indicator
+import workers
+
+
+# create logger
+logger = logging.getLogger('LT')
+
+
+def setup_logger(level=logging.INFO):
+    """Setup logger configuration"""
+    logger.setLevel(level)
+
+    # create console handler and set level to debug
+    ch = logging.StreamHandler()
+    ch.setLevel(level)
+
+    # create formatter
+    formatter = logging.Formatter(
+        '[%(asctime)s][%(levelname)-5s][%(filename)-15s:%(lineno)3d] %(message)s'
+    )
+
+    # add formatter to ch
+    ch.setFormatter(formatter)
+
+    # Log level colors
+    logging.addLevelName(logging.DEBUG, "\033[34m{}\033[0m".format(logging.getLevelName(logging.DEBUG)))
+    logging.addLevelName(logging.INFO, "\033[32m{}\033[0m".format(logging.getLevelName(logging.INFO)))
+    logging.addLevelName(logging.WARNING, "\033[33m{}\033[0m".format(logging.getLevelName(logging.WARNING)))
+    logging.addLevelName(logging.ERROR, "\033[31m{}\033[0m".format(logging.getLevelName(logging.ERROR)))
+    logging.addLevelName(logging.CRITICAL, "\033[41m{}\033[0m".format(logging.getLevelName(logging.CRITICAL)))
+
+    # add ch to logger
+    logger.addHandler(ch)
 
 
 # pylint: disable=no-member
@@ -24,7 +56,12 @@ class App(QtGui.QApplication):
 
     def __init__(self):
         super(App, self).__init__([])
-        self.win = None
+
+        # get workers
+        self.workers = workers.get_workers()
+        self.data_queue = Queue.Queue()
+
+        self.win = gui.PopupTranslate(self.data_queue)
 
         # connect signals
         self.sig_show.connect(self.show_popup)
@@ -49,34 +86,32 @@ class App(QtGui.QApplication):
 
     @staticmethod
     def get_selection():
-        """Get current selection, translate it
-        and return with current mouse position"""
+        """Get current selection"""
         selection = os.popen('xsel').read()
-        data = {'src': selection}
-        if config.config['options']['translation']:
-            data.update(lingualeo.get_translate(selection))
-        if config.config['options']['spellchecker']:
-            data.update(spellcheck.check_spelling(selection))
-        # if config.config['options']['hex-decoder']:
-        #     hex_decoded = self.parse_hex(data)
-        x_pos = keylistener.new_hook.mouse_position_x
-        y_pos = keylistener.new_hook.mouse_position_y
-        return data, x_pos, y_pos
+        return selection
 
     @QtCore.Slot()
     def show_popup(self):
         """Show window with translate info"""
-        data = self.get_selection()
-        self.win = gui.PopupTranslate(*data)
-        self.win.show()
+        selection = self.get_selection()
+
+        for plugin in self.workers:
+            mod = plugin(self.data_queue, selection)
+            mod.start()
+
+        x_pos = keylistener.new_hook.mouse_position_x
+        y_pos = keylistener.new_hook.mouse_position_y
+
+        self.win.show_popup(selection, x_pos, y_pos)
 
     @QtCore.Slot()
     def on_exit(self):
         """Action on exit"""
-        print 'Linux-translator applcation stopped.'
+        self.win.exit()
         self.closeAllWindows()
-        keylistener.hook_exit()
         self.quit()
+        logger.info('Linux-translator applcation stopped.')
+        keylistener.hook_exit()
 
 
 def get_args():
@@ -94,6 +129,12 @@ def get_args():
         default=default_conf,
         help="JSON file with configuration"
     )
+    parser.add_argument(
+        "-d",
+        "--debug",
+        action='store_true',
+        help="Enable logger debug mode"
+    )
 
     args = parser.parse_args()
 
@@ -106,10 +147,15 @@ def main():
     args = get_args()
     config.config.read(args.config_file)
 
+    level = logging.DEBUG if args.debug else logging.INFO
+    setup_logger(level)
+
     signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-    print 'Linux-translator applcation started. Use F2 to translate and ' \
-          'F9 to exit (defaul values).'
+    logger.info(
+        'Linux-translator application started. Use F2 to translate and '
+        'F9 to exit (default values).'
+    )
 
     app = App()
     sys.exit(app.exec_())
