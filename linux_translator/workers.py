@@ -4,6 +4,7 @@ import os
 
 import modules.base
 
+APP_NAME = 'linux_translator'
 MOD_DIR = 'modules'
 
 
@@ -33,7 +34,7 @@ def get_workers():
     ):
         name, ext = os.path.splitext(mod)
         loaded_mod = importlib.import_module(
-            '.'.join((MOD_DIR, name))
+            '.'.join((APP_NAME, MOD_DIR, name))
         )
         workers.extend(list(get_module_class(loaded_mod)))
     return workers

@@ -3,6 +3,7 @@ This module split under_scored words and CamelCase words.
 """
 
 import collections
+import logging
 import re
 import string
 import threading
@@ -10,6 +11,7 @@ import threading
 import requests
 
 import base
+from .. import config
 
 
 class Translate(
@@ -94,12 +96,19 @@ class LingualeoTranslate(base.BaseModule):
 
     def run(self):
         """Get translation of selected text, format it and return back."""
-        print self.NAME, threading.current_thread()
+        if config.config['options']['translation']:
+            logger = logging.getLogger('LT')
+            logger.debug(
+                '%s: module started in new thread: %s',
+                self.NAME,
+                threading.current_thread()
+            )
 
-        translate = self.get_translate()
-        formatted = self.format_translate(translate)
-        res = base.Result(
-            module_name=self.NAME,
-            result=formatted,
-        )
-        self.queue.put(res)
+            translate = self.get_translate()
+            formatted = self.format_translate(translate)
+            res = base.Result(
+                module_name=self.NAME,
+                result=formatted,
+            )
+            self.queue.put(res)
+            logger.debug('%s: Put data in queue: %s', self.NAME, res)

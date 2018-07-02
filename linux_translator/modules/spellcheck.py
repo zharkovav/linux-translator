@@ -1,8 +1,12 @@
-import base
-import threading
-import requests
 import collections
+import logging
+import requests
 import string
+import threading
+
+from .. import config
+
+import base
 
 
 class SpellCheckResult(
@@ -99,19 +103,27 @@ class YandexSpellcheck(base.BaseModule):
             error = 'Error - {}.<br>'.format(error)
             text = result_text + error
         else:
-            text = result_text + '<br>' + spell_check_result
+            text = result_text + spell_check_result
 
         text = text.decode('utf-8')
         return text
 
     def run(self, selection=None):
-        print self.NAME, threading.current_thread()
+        """Run module process"""
+        if config.config['options']['spellchecker']:
+            logger = logging.getLogger('LT')
+            logger.debug(
+                '%s: module started in new thread: %s',
+                self.NAME,
+                threading.current_thread()
+            )
 
-        spellcheck = self.get_spellcheck()
-        formatted = self.format_result(spellcheck)
+            spellcheck = self.get_spellcheck()
+            formatted = self.format_result(spellcheck)
 
-        res = base.Result(
-            module_name=self.NAME,
-            result=formatted,
-        )
-        self.queue.put(res)
+            res = base.Result(
+                module_name=self.NAME,
+                result=formatted,
+            )
+            self.queue.put(res)
+            logger.debug('%s: Put data in queue: %s', self.NAME, res)
