@@ -25,6 +25,3 @@ Require: python2.7, xsel, PySide and python-xlib
 
 To setup application run install.sh script.
 To run type in console linux_translator command.
-
-# ToDo:
- - add threads
