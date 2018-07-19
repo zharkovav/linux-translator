@@ -100,7 +100,7 @@ class QueueWorker(QtCore.QThread):
         import Queue
         while not self.stop:
             try:
-                data = self.queue.get_nowait()
+                data = self.queue.get(timeout=1)
                 self.update_signal.emit(data)
             except Queue.Empty:
                 continue
